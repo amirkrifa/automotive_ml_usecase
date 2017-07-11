@@ -64,7 +64,7 @@ def heatmap(trips, nrbins = 200):
     plt.title('Trip density')
     plt.savefig('trips_density.png')
 
-def data_preprocessing(dataset_path):
+def create_raw_trips(dataset_path):
     """
     data pre processing & cleansing
     """
@@ -188,7 +188,12 @@ def data_preprocessing(dataset_path):
     # plot trips hitmap
     heatmap([x['trip'] for x in trips.values()])
 
-    # Dataset & features generation
+    return trips
+
+def create_trips_dataset(trips):
+    """
+    Create the trips dataset starting from the raw trips data
+    """
     columns = ['init_time_week', 'init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
                'device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
                'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
@@ -276,7 +281,10 @@ def main():
     options, args_left = parser.parse_args()
 
     # data pre-processing
-    trips_dataset = data_preprocessing(options.data)
+    raw_trips_data = create_raw_trips(options.data)
+
+    # create trips dataset
+    trips_dataset = create_trips_dataset(raw_trips_data)
 
     # dump dataset
     trips_dataset.to_csv('trips_dataset.csv')
