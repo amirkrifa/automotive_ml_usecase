@@ -258,14 +258,12 @@ def main():
     lon_error = mean_squared_error([x[0] for x in y_lon_test], y_lon_pred)
 
     lat_scores = cross_val_score(lat_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
-    lon_scores = cross_val_score(lon_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
+    lon_scores = cross_val_score(lon_ada_reg, X, y_lon, cv=5, scoring='neg_mean_squared_error')
 
     print '\nLat mse: ', lat_error
     print 'Lon mse: ', lon_error
-    print '\nLat Cross validation mse scores: ', lat_scores
-    print 'Average Lon mse: ', np.mean(lat_scores)
-    print '\nLon Cross validation mse scores: ', lon_scores
-    print 'Average Lon mse: ', np.mean(lon_scores)
+    print 'Avg Lon mse: ', np.mean(lat_scores)
+    print 'Avg Lon mse: ', np.mean(lon_scores)
 
     print 'Done'
 
