@@ -17,3 +17,12 @@ The dataset contains the following variables:
 
 Predict the destination of cars trips based on partial trajectories.
 
+# Usage
+
+Usage: process.py [options]
+
+Options:
+  -h, --help   show this help message and exit
+  --data=DATA  The src dataset. Default:
+               ./testDataset/testDataset/part-00000-711fabb0-5efc-4d83-afad-
+               0e03a3156794.snappy.parquet.
