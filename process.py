@@ -235,9 +235,7 @@ def main():
     y_lat = dataset[['dest_lat']]
     y_lon = dataset[['dest_lon']]
     X = dataset[['init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
-                 'dest_shape_complexity', 'dest_euclidean_distance',
-                 'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
-
+                 'src_lat', 'src_lon'
                 ]]
 
     X = X.as_matrix()
