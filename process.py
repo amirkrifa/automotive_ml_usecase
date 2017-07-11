@@ -180,19 +180,21 @@ def data_preprocessing(dataset_path):
 
     # Dataset & features generation
     columns = ['device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
-               'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates'
+               'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
                ]
     rows = []
     for device_name, trip_details in trips.iteritems():
         dest_lat = trip_details['dest_lat']
         dest_lon = trip_details['dest_lon']
+        src_lat = trip_details['src_lat']
+        src_lon = trip_details['src_lon']
         dest_shape_complexity = trip_details['dest_shape_complexity']
         dest_euclidean_distance = trip_details['dest_euclidean_distance']
         dest_haversine_distance = trip_details['dest_haversine_distance']
         travel_delay = (trip_details['trip'][-1].eventTime - trip_details['trip_start_time']).seconds
         trip_nbr_updates = trip_details['trip_nbr_updates']
         rows.append([device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
-                     dest_haversine_distance, travel_delay, trip_nbr_updates
+                     dest_haversine_distance, travel_delay, trip_nbr_updates, src_lat, src_lon
                      ]
                     )
     dataset = pd.DataFrame(data=rows, columns=columns)
@@ -227,7 +229,7 @@ def main():
     y_lat = dataset[['dest_lat']]
     y_lon = dataset[['dest_lon']]
     X = dataset[['dest_shape_complexity', 'dest_euclidean_distance',
-                  'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates'
+                  'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
 
                 ] ]
 
@@ -248,11 +250,15 @@ def main():
     lat_error = mean_squared_error([x[0] for x in y_lat_test], y_lat_pred)
     lon_error = mean_squared_error([x[0] for x in y_lon_test], y_lon_pred)
 
-    scores = cross_val_score(lat_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
+    lat_scores = cross_val_score(lat_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
+    lon_scores = cross_val_score(lon_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
+
     print 'lat mse: ', lat_error
     print 'lon mse: ', lon_error
-    print 'Cross validation mse scores: ', scores
-    print 'Average mse: ', np.mean(scores)
+    print 'Lat Cross validation mse scores: ', lat_scores
+    print 'Average Lon mse: ', np.mean(lat_scores)
+    print 'Lon Cross validation mse scores: ', lat_scores
+    print 'Average Lon mse: ', np.mean(lat_scores)
 
     print 'Done'
 
