@@ -11,6 +11,7 @@ from sklearn.ensemble import AdaBoostRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import cross_val_score
+from sklearn import preprocessing
 
 MAX_VALID_LAT, MIN_VALID_LAT =  90, -90
 MAX_VALID_LON, MIN_VALID_LON =  180, -180
@@ -249,8 +250,11 @@ def main():
                  'mid_haversine_distance', 'src_euclidean_distance', 'src_haversine_distance'
                  ]]
 
-    X_train, X_test, y_lat_train, y_lat_test = train_test_split(X.as_matrix(), y_lat.as_matrix(), test_size=0.33, random_state=42)
-    X_train, X_test, y_lon_train, y_lon_test = train_test_split(X.as_matrix(), y_lon.as_matrix(), test_size=0.33, random_state=42)
+    X = X.as_matrix()
+    X = preprocessing.scale(X)
+
+    X_train, X_test, y_lat_train, y_lat_test = train_test_split(X, y_lat.as_matrix(), test_size=0.33, random_state=42)
+    X_train, X_test, y_lon_train, y_lon_test = train_test_split(X, y_lon.as_matrix(), test_size=0.33, random_state=42)
 
     lat_ada_reg.fit(X_train, y_lat_train)
     lon_ada_reg.fit(X_train, y_lon_train)
