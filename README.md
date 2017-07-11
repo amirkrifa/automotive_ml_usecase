@@ -4,7 +4,8 @@ The dataset aggregates data transmitted from a number of cars while they are dri
 
 ## Goal
 
-Predict the destination of cars trips (lat and lon). 
+Predict where a person is heading to next (that is, where the next trip-end will be transmitted from) 
+based on the time and the location of the trip-start.
 
 ## Dataset description
 
