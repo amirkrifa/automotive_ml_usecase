@@ -262,8 +262,8 @@ def main():
 
     print '\nLat mse: ', lat_error
     print 'Lon mse: ', lon_error
-    print 'Avg Lon mse: ', np.mean(lat_scores)
-    print 'Avg Lon mse: ', np.mean(lon_scores)
+    print 'Avg Lon neg mse: ', np.mean(lat_scores)
+    print 'Avg Lon neg mse: ', np.mean(lon_scores)
 
     print 'Done'
 
