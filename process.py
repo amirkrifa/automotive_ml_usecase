@@ -219,6 +219,8 @@ def main():
     # dump dataset
     dataset.to_csv('dataset.csv')
 
+    # Task 1: Predict where a person is heading to next (that is, where the next trip-end will be transmitted from)
+    # based on the time and the location of the trip-start.
     print 'Training ...'
 
     rng = np.random.RandomState(1)
