@@ -16,7 +16,9 @@ from sklearn import preprocessing
 MAX_VALID_LAT, MIN_VALID_LAT =  90, -90
 MAX_VALID_LON, MIN_VALID_LON =  180, -180
 
-# Relevant paper: https://arxiv.org/pdf/1509.05257.pdf
+# Relevant papers:
+# https://arxiv.org/pdf/1509.05257.pdf
+# http://ceur-ws.org/Vol-1526/paper21.pdf
 
 # calculate distance among two gps points
 def haversine(coord1,coord2):
@@ -257,8 +259,8 @@ def main():
     lat_error = mean_squared_error([x[0] for x in y_lat_test], y_lat_pred)
     lon_error = mean_squared_error([x[0] for x in y_lon_test], y_lon_pred)
 
-    lat_scores = cross_val_score(lat_ada_reg, X, y_lat, cv=5, scoring='neg_mean_squared_error')
-    lon_scores = cross_val_score(lon_ada_reg, X, y_lon, cv=5, scoring='neg_mean_squared_error')
+    lat_scores = cross_val_score(lat_ada_reg, X, y_lat, cv=10, scoring='neg_mean_squared_error')
+    lon_scores = cross_val_score(lon_ada_reg, X, y_lon, cv=10, scoring='neg_mean_squared_error')
 
     print '\nLat mse: ', lat_error
     print 'Lon mse: ', lon_error
