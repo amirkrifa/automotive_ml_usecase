@@ -179,11 +179,17 @@ def data_preprocessing(dataset_path):
     heatmap([x['trip'] for x in trips.values()])
 
     # Dataset & features generation
-    columns = ['device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
+    columns = ['init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
+               'device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
                'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
                ]
     rows = []
     for device_name, trip_details in trips.iteritems():
+        init_time_month = trip_details['trip'][0].eventTime.month
+        init_time_day = trip_details['trip'][0].eventTime.day
+        init_time_hour = trip_details['trip'][0].eventTime.hour
+        init_time_minutes = trip_details['trip'][0].eventTime.minute
+        init_time_seconds = trip_details['trip'][0].eventTime.second
         dest_lat = trip_details['dest_lat']
         dest_lon = trip_details['dest_lon']
         src_lat = trip_details['src_lat']
@@ -193,7 +199,7 @@ def data_preprocessing(dataset_path):
         dest_haversine_distance = trip_details['dest_haversine_distance']
         travel_delay = (trip_details['trip'][-1].eventTime - trip_details['trip_start_time']).seconds
         trip_nbr_updates = trip_details['trip_nbr_updates']
-        rows.append([device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
+        rows.append([init_time_month, init_time_day, init_time_hour, init_time_minutes, init_time_seconds, device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
                      dest_haversine_distance, travel_delay, trip_nbr_updates, src_lat, src_lon
                      ]
                     )
@@ -228,10 +234,11 @@ def main():
 
     y_lat = dataset[['dest_lat']]
     y_lon = dataset[['dest_lon']]
-    X = dataset[['dest_shape_complexity', 'dest_euclidean_distance',
-                  'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
+    X = dataset[['init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
+                 'dest_shape_complexity', 'dest_euclidean_distance',
+                 'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
 
-                ] ]
+                ]]
 
     X = X.as_matrix()
     X = preprocessing.scale(X)
