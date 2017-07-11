@@ -4,7 +4,7 @@ The dataset aggregates data transmitted from a number of cars while they are dri
 
 ## Goal
 
-For each event, predict the destination of cars trips based on partial trajectories. 
+Predict the destination of cars trips (lat and lon). 
 
 ## Dataset description
 

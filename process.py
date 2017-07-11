@@ -179,40 +179,22 @@ def data_preprocessing(dataset_path):
     heatmap([x['trip'] for x in trips.values()])
 
     # Dataset & features generation
-    columns = ['event_id', 'event_time_month', 'event_time_day', 'event_time_hour', 'event_time_minutes', 'event_time_seconds',
-               'event_lat', 'event_lon', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
-               'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'mid_euclidean_distance', 'mid_haversine_distance',
-               'src_euclidean_distance', 'src_haversine_distance'
+    columns = ['device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
+               'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates'
                ]
     rows = []
     for device_name, trip_details in trips.iteritems():
-        for event in trip_details['trip']:
-            event_id = event.eventId
-            event_time_month = event.eventTime.month
-            event_time_day = event.eventTime.day
-            event_time_hour = event.eventTime.hour
-            event_time_minutes = event.eventTime.minute
-            event_time_seconds = event.eventTime.second
-            event_lat = event.lat
-            event_lon = event.lon
-            dest_lat = trip_details['dest_lat']
-            dest_lon = trip_details['dest_lon']
-            dest_shape_complexity = trip_details['dest_shape_complexity']
-            dest_euclidean_distance = trip_details['dest_euclidean_distance']
-            dest_haversine_distance = trip_details['dest_haversine_distance']
-            travel_delay = (event.eventTime - trip_details['trip_start_time']).seconds
-            trip_nbr_updates = trip_details['trip_nbr_updates']
-            mid_euclidean_distance = distance.euclidean((event.lon, event.lat), (mid_lon, mid_lat))
-            mid_haversine_distance = haversine((event.lon, event.lat), (mid_lon, mid_lat))
-            src_euclidean_distance = distance.euclidean((event.lon, event.lat), (trip_details['src_lon'], trip_details['src_lat']))
-            src_haversine_distance = haversine((event.lon, event.lat), (trip_details['src_lon'], trip_details['src_lat']))
-
-            rows.append([event_id, event_time_month, event_time_day, event_time_hour, event_time_minutes, event_time_seconds,
-                         event_lat, event_lon, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
-                         dest_haversine_distance, travel_delay, trip_nbr_updates, mid_euclidean_distance, mid_haversine_distance,
-                         src_euclidean_distance, src_haversine_distance
-                         ]
-                        )
+        dest_lat = trip_details['dest_lat']
+        dest_lon = trip_details['dest_lon']
+        dest_shape_complexity = trip_details['dest_shape_complexity']
+        dest_euclidean_distance = trip_details['dest_euclidean_distance']
+        dest_haversine_distance = trip_details['dest_haversine_distance']
+        travel_delay = (trip_details['trip'][-1].eventTime - trip_details['trip_start_time']).seconds
+        trip_nbr_updates = trip_details['trip_nbr_updates']
+        rows.append([device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
+                     dest_haversine_distance, travel_delay, trip_nbr_updates
+                     ]
+                    )
     dataset = pd.DataFrame(data=rows, columns=columns)
     return dataset
 
@@ -244,11 +226,10 @@ def main():
 
     y_lat = dataset[['dest_lat']]
     y_lon = dataset[['dest_lon']]
-    X = dataset[['event_time_month', 'event_time_day', 'event_time_hour', 'event_time_minutes', 'event_time_seconds',
-                 'event_lat', 'event_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
-                 'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'mid_euclidean_distance',
-                 'mid_haversine_distance', 'src_euclidean_distance', 'src_haversine_distance'
-                 ]]
+    X = dataset[['dest_shape_complexity', 'dest_euclidean_distance',
+                  'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates'
+
+                ] ]
 
     X = X.as_matrix()
     X = preprocessing.scale(X)
