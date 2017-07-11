@@ -16,12 +16,14 @@ from sklearn import preprocessing
 MAX_VALID_LAT, MIN_VALID_LAT =  90, -90
 MAX_VALID_LON, MIN_VALID_LON =  180, -180
 
-# Relevant papers:
+# Relevant related papers:
 # https://arxiv.org/pdf/1509.05257.pdf
 # http://ceur-ws.org/Vol-1526/paper21.pdf
 
-# calculate distance among two gps points
 def haversine(coord1,coord2):
+    """
+    Calculate distance among two gps points
+    """
     sin = math.sin
     cos = math.cos
     atan2 = math.atan2
@@ -39,6 +41,9 @@ def haversine(coord1,coord2):
     return d
 
 def heatmap(trips, nrbins = 200):
+    """
+    Generates trips heatmap.
+    """
     hist = np.zeros((nrbins, nrbins))
     for trip in trips:
         # Compute the histogram with the longitude and latitude data as a source
@@ -60,6 +65,9 @@ def heatmap(trips, nrbins = 200):
     plt.savefig('trips_density.png')
 
 def data_preprocessing(dataset_path):
+    """
+    data pre processing & cleansing
+    """
     # load data
     table = pq.read_table(dataset_path)
     df = table.to_pandas()
@@ -181,12 +189,13 @@ def data_preprocessing(dataset_path):
     heatmap([x['trip'] for x in trips.values()])
 
     # Dataset & features generation
-    columns = ['init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
+    columns = ['init_time_week', 'init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
                'device_name', 'dest_lat', 'dest_lon', 'dest_shape_complexity', 'dest_euclidean_distance',
                'dest_haversine_distance', 'dest_travel_delay', 'trip_nbr_updates', 'src_lat', 'src_lon'
                ]
     rows = []
     for device_name, trip_details in trips.iteritems():
+        init_time_week = trip_details['trip'][0].eventTime.week
         init_time_month = trip_details['trip'][0].eventTime.month
         init_time_day = trip_details['trip'][0].eventTime.day
         init_time_hour = trip_details['trip'][0].eventTime.hour
@@ -201,28 +210,18 @@ def data_preprocessing(dataset_path):
         dest_haversine_distance = trip_details['dest_haversine_distance']
         travel_delay = (trip_details['trip'][-1].eventTime - trip_details['trip_start_time']).seconds
         trip_nbr_updates = trip_details['trip_nbr_updates']
-        rows.append([init_time_month, init_time_day, init_time_hour, init_time_minutes, init_time_seconds, device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
+        rows.append([init_time_week, init_time_month, init_time_day, init_time_hour, init_time_minutes, init_time_seconds, device_name, dest_lat, dest_lon, dest_shape_complexity, dest_euclidean_distance,
                      dest_haversine_distance, travel_delay, trip_nbr_updates, src_lat, src_lon
                      ]
                     )
-    dataset = pd.DataFrame(data=rows, columns=columns)
-    return dataset
+    trips_dataset = pd.DataFrame(data=rows, columns=columns)
+    return trips_dataset
 
-def main():
-    import optparse
-    parser = optparse.OptionParser()
-    parser.add_option('--data', default='./testDataset/testDataset/part-00000-711fabb0-5efc-4d83-afad-0e03a3156794.snappy.parquet', help='The src dataset. Default: %default.')
-
-    options, args_left = parser.parse_args()
-
-    # data pre-processing
-    dataset = data_preprocessing(options.data)
-
-    # dump dataset
-    dataset.to_csv('dataset.csv')
-
-    # Task 1: Predict where a person is heading to next (that is, where the next trip-end will be transmitted from)
-    # based on the time and the location of the trip-start.
+def predict_trips_destination(dataset):
+    """
+    Task 1: Predict where a person is heading to next (that is, where the next trip-end will be transmitted from)
+    based on the time and the location of the trip-start.
+    """
     print 'Training ...'
 
     rng = np.random.RandomState(1)
@@ -238,9 +237,9 @@ def main():
 
     y_lat = dataset[['dest_lat']]
     y_lon = dataset[['dest_lon']]
-    X = dataset[['init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
+    X = dataset[['init_time_week', 'init_time_month', 'init_time_day', 'init_time_hour', 'init_time_minutes', 'init_time_seconds',
                  'src_lat', 'src_lon'
-                ]]
+                 ]]
 
     X = X.as_matrix()
     X = preprocessing.scale(X)
@@ -268,6 +267,23 @@ def main():
     print 'Avg Lon neg mse: ', np.mean(lon_scores)
 
     print 'Done'
+
+def main():
+    import optparse
+    parser = optparse.OptionParser()
+    parser.add_option('--data', default='./testDataset/testDataset/part-00000-711fabb0-5efc-4d83-afad-0e03a3156794.snappy.parquet', help='The src dataset. Default: %default.')
+
+    options, args_left = parser.parse_args()
+
+    # data pre-processing
+    trips_dataset = data_preprocessing(options.data)
+
+    # dump dataset
+    trips_dataset.to_csv('trips_dataset.csv')
+
+    # predict trips distinations
+    predict_trips_destination(trips_dataset)
+
 
 if __name__ == '__main__':
     main()
