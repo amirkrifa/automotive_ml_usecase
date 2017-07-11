@@ -222,12 +222,50 @@ def create_trips_dataset(trips):
     trips_dataset = pd.DataFrame(data=rows, columns=columns)
     return trips_dataset
 
-def predict_trips_destination(dataset):
+def create_events_partial_trips_dataset(trips):
+    """
+    Create per event partial trips dataset starting from the raw trips data
+    """
+    # Dataset & features generation
+    columns = ['event_id', 'event_time_month', 'event_time_week', 'event_time_day',
+               'event_time_hour', 'event_time_minutes', 'event_time_seconds',
+               'event_lat', 'event_lon', 'dest_lat', 'dest_lon', 'dest_travel_delay',
+               'src_euclidean_distance', 'src_haversine_distance', 'event_shape_complexity'
+               ]
+    rows = []
+    for device_name, trip_details in trips.iteritems():
+        for event in trip_details['trip']:
+            event_id = event.eventId
+            event_time_month = event.eventTime.month
+            event_time_week = event.eventTime.week
+            event_time_day = event.eventTime.day
+            event_time_hour = event.eventTime.hour
+            event_time_minutes = event.eventTime.minute
+            event_time_seconds = event.eventTime.second
+            event_lat = event.lat
+            event_lon = event.lon
+            dest_lat = trip_details['dest_lat']
+            dest_lon = trip_details['dest_lon']
+            travel_delay = (event.eventTime - trip_details['trip_start_time']).seconds
+            src_euclidean_distance = distance.euclidean((event.lon, event.lat), (trip_details['src_lon'], trip_details['src_lat']))
+            src_haversine_distance = haversine((event.lon, event.lat), (trip_details['src_lon'], trip_details['src_lat']))
+            event_shape_complexity = src_euclidean_distance/src_haversine_distance if src_haversine_distance else 0
+
+            rows.append([event_id, event_time_month, event_time_week, event_time_day,
+                         event_time_hour, event_time_minutes, event_time_seconds,
+                         event_lat, event_lon, dest_lat, dest_lon, travel_delay,
+                         src_euclidean_distance, src_haversine_distance, event_shape_complexity
+                         ]
+                        )
+    dataset = pd.DataFrame(data=rows, columns=columns)
+    return dataset
+
+def predict_trips_destination_based_on_trip_start(dataset):
     """
     Task 1: Predict where a person is heading to next (that is, where the next trip-end will be transmitted from)
     based on the time and the location of the trip-start.
     """
-    print 'Training ...'
+    print '\nTraining Task 1 ...'
 
     rng = np.random.RandomState(1)
     lat_ada_reg = AdaBoostRegressor(DecisionTreeRegressor(max_depth=5),
@@ -273,6 +311,60 @@ def predict_trips_destination(dataset):
 
     print 'Done'
 
+
+def predict_trips_destination_based_on_events_partial_trips(dataset):
+    """
+    Task 2: For each received event, predict where a person is heading to next (that is, where the next trip-end will be transmitted from)
+    based on the partial trajectories calculated for each event.
+    """
+    print '\nTraining Task 2 ...'
+
+    rng = np.random.RandomState(1)
+    lat_ada_reg = AdaBoostRegressor(DecisionTreeRegressor(max_depth=5),
+                                    n_estimators=300,
+                                    random_state=rng
+                                    )
+    lon_ada_reg = AdaBoostRegressor(DecisionTreeRegressor(max_depth=5),
+                                    n_estimators=300,
+                                    random_state=rng
+                                    )
+
+
+    y_lat = dataset[['dest_lat']]
+    y_lon = dataset[['dest_lon']]
+    X = dataset[['event_time_month', 'event_time_week', 'event_time_day',
+                 'event_time_hour', 'event_time_minutes', 'event_time_seconds',
+                 'event_lat', 'event_lon', 'dest_travel_delay',
+                 'src_euclidean_distance', 'src_haversine_distance', 'event_shape_complexity'
+                 ]]
+
+    X = X.as_matrix()
+    X = preprocessing.scale(X)
+
+    X_train, X_test, y_lat_train, y_lat_test = train_test_split(X, y_lat.as_matrix(), test_size=0.33, random_state=42)
+    X_train, X_test, y_lon_train, y_lon_test = train_test_split(X, y_lon.as_matrix(), test_size=0.33, random_state=42)
+
+    lat_ada_reg.fit(X_train, y_lat_train)
+    lon_ada_reg.fit(X_train, y_lon_train)
+
+    # Predict
+    y_lat_pred = lat_ada_reg.predict(X_test)
+    y_lon_pred = lon_ada_reg.predict(X_test)
+
+    # MSE
+    lat_error = mean_squared_error([x[0] for x in y_lat_test], y_lat_pred)
+    lon_error = mean_squared_error([x[0] for x in y_lon_test], y_lon_pred)
+
+    lat_scores = cross_val_score(lat_ada_reg, X, y_lat, cv=10, scoring='neg_mean_squared_error')
+    lon_scores = cross_val_score(lon_ada_reg, X, y_lon, cv=10, scoring='neg_mean_squared_error')
+
+    print '\nLat mse: ', lat_error
+    print 'Lon mse: ', lon_error
+    print 'Avg Lon neg mse: ', np.mean(lat_scores)
+    print 'Avg Lon neg mse: ', np.mean(lon_scores)
+
+    print 'Done'
+
 def main():
     import optparse
     parser = optparse.OptionParser()
@@ -286,11 +378,20 @@ def main():
     # create trips dataset
     trips_dataset = create_trips_dataset(raw_trips_data)
 
-    # dump dataset
+    # dump trips dataset
     trips_dataset.to_csv('trips_dataset.csv')
 
-    # predict trips distinations
-    predict_trips_destination(trips_dataset)
+    # predict trips distinations based on basic informations about trip-start
+    predict_trips_destination_based_on_trip_start(trips_dataset)
+
+    # create partial trajectories dataset
+    events_partial_trips_dataset = create_events_partial_trips_dataset(raw_trips_data)
+
+    #dump partial trajectories dataset
+    events_partial_trips_dataset.to_csv('events_partial_trips_dataset.csv')
+
+    # predict trips at each recceived event based on partial trajectories
+    predict_trips_destination_based_on_events_partial_trips(events_partial_trips_dataset)
 
 
 if __name__ == '__main__':

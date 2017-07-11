@@ -4,9 +4,10 @@ The dataset aggregates data transmitted from a number of cars while they are dri
 
 ## Goal
 
-Predict where a person is heading to next (that is, where the next trip-end will be transmitted from) 
-based on the time and the location of the trip-start.
+- Task 1: Predict where a person is heading to next (that is, where the next trip-end will be transmitted from) based on the time and the location of the trip-start.
 
+- Task 2: For each received event, predict where a person is heading to next (that is, where the next trip-end will be transmitted from) based on the partial trajectories calculated for each event.
+            
 ## Dataset description
 
 The dataset contains the following variables:
