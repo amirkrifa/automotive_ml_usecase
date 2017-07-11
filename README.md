@@ -2,6 +2,10 @@
 
 The dataset aggregates data transmitted from a number of cars while they are driving around. 
 
+## Goal
+
+For each event, predict the destination of cars trips based on partial trajectories. 
+
 ## Dataset description
 
 The dataset contains the following variables:
@@ -12,10 +16,6 @@ The dataset contains the following variables:
 - lon This is the longitude of the vehicle at the time of transmission.
 - eventType This categorical variable can take the values ‘trip-start’, ‘trip-end’ as well as others. If the value is ‘trip-start’ the transmission occurred at the beginning of a trip, and similarly for ‘trip-end’. The other events occurred in between a trip-end and trip-start.
 
-
-## Goal
-
-Predict the destination of cars trips based on partial trajectories.
 
 ## Usage
 ```
